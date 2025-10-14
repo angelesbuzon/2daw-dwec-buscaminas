@@ -139,14 +139,15 @@ function showEmptyAdjacentBoxes(board, playerBoard, row, col) {
         if (i < 0 || i >= board.length) continue; // Skip to next iteration if we are in a row border
 
         for (j = col-1; j <= col+1; j++) {
+            // Using == sometimes to account for num/string
             // Skip
             if (j < 0 || j >= board[i].length) continue; // ... if we are in a column border
             else if (i === row && j === col) continue; // ... if we are in this very same cell
-            else if (board[i][j] === -1) continue; // ... if it's a mine
+            else if (board[i][j] == -1) continue; // ... if it's a mine
             else if (playerBoard[i][j] !== "x") continue; // ... if it's already revealed
 
             // Go on
-            else if (board[i][j] === 0) showEmptyAdjacentBoxes(board, playerBoard, i, j); // Recursion
+            else if (board[i][j] == 0) showEmptyAdjacentBoxes(board, playerBoard, i, j); // Recursion
             else playerBoard[i][j] = board[i][j]; // Show numeric flag and stop iteration
         }
     }
