@@ -10,7 +10,7 @@
  * 
  * Two boards:
  * board    =>  values generated at the beginning
- * playerBoard  =>  values hidden (and where -1 = * and 0 = ·)
+ * playerBoard  =>  values hidden (all cells are initially x, and when revealed -1 = * and 0 = " ")
  * 
  * console.log's for playing are in the target language
  * console.debug's are in English
@@ -35,11 +35,11 @@ console.log(`Número de minas: ${numberOfMines}`);
 /* --------------
     Ready, set...
    -------------- */
-board = generateBoard(boardSize, 0);
+board = generateBoard(boardSize, "0");
 console.debug(`Values board generated`);
 placeMines(board, boardSize, numberOfMines);
 
-playerBoard = generateBoard(boardSize, " ");
+playerBoard = generateBoard(boardSize, "x");
 console.debug(`Player board generated`);
 
 console.table(board); //debug
@@ -60,8 +60,6 @@ function generateBoard(size, emptyChar) {
 
         for (j = 0; j < size; j++) brd[i][j] = emptyChar; // Create empty row x column
     }
-
-    
     
     return brd;
 }
@@ -69,7 +67,7 @@ function generateBoard(size, emptyChar) {
 function placeMines(board, boardSize, numberOfMines) {
     /*
      * Create random [row, col] coordenates,
-     * store them in function-level array to avoid repetitions
+     * store them in function-level array to keep track and avoid repetitions,
      * and add each new mine to actual board
      */
     
@@ -83,7 +81,7 @@ function placeMines(board, boardSize, numberOfMines) {
         do {
             coordIsNew = true;
 
-            row = getRandomCoordinate(0, boardSize-1); // boardSize = 10 => Possible results are 0...9
+            row = getRandomCoordinate(0, boardSize-1); // e.g. boardSize = 10 => Possible results are 0...9
             col = getRandomCoordinate(0, boardSize-1);
             coord = [row, col];
 
@@ -97,24 +95,25 @@ function placeMines(board, boardSize, numberOfMines) {
         console.debug(`Coordinates so far: ${mineCoordenates}`);
 
         // Add mine
-        board[row][col] = -1;
+        board[row][col] = "-1";
         
         /*
-         * Update adjacent boxes: try every possible one
+         * Update adjacent boxes: try every possible one (but accounting for borders)
          * · · ·
-         * · M ·
+         * · * ·
          * · · ·
          */
+
         console.debug(`Updating adjacents of mine [${row}][${col}]`);
-        updateAdjacentBoxes(board, row-1, col-1);
-        updateAdjacentBoxes(board, row-1, col);
-        updateAdjacentBoxes(board, row-1, col+1);
-        updateAdjacentBoxes(board, row, col-1);
-        // M = updateAdjacentBoxes(board, row, col);
-        updateAdjacentBoxes(board, row, col+1);
-        updateAdjacentBoxes(board, row+1, col-1);
-        updateAdjacentBoxes(board, row+1, col);
-        updateAdjacentBoxes(board, row+1, col+1);
+        for (i = row-1; i <= row+1; i++) {
+            if (i < 0 || i >= boardSize) continue;
+
+            for (j = col-1; j <= col+1; j++) {
+                if (j < 0 || j >= boardSize) continue;
+                else if (i == row && j == col) continue;
+                else updateAdjacentBoxes(board, i, j);
+            }
+        }
         console.debug(`Finished placing mine [${row}][${col}]`)
     }
 
@@ -126,38 +125,31 @@ function getRandomCoordinate(min, max) {
 }
 
 function updateAdjacentBoxes(board, r, c) {
-    try {
-        if (board[r][c] !== -1) {
-            board[r][c]++;
-            console.debug(`Adjacent [${r}][${c}] updated`)
-        } else console.debug(`Adjacent [${r}][${c}] is another mine`);
-    } catch (TypeError) {
-        console.debug(`Adjacent [${r}][${c}] does not exist in the board`);
-    }
+    // Used when placing mines
+    if (board[r][c] !== -1) {
+        board[r][c]++;
+        console.debug(`Adjacent [${r}][${c}] updated`)
+    } else console.debug(`Adjacent [${r}][${c}] is another mine`);
 }
 
 function showEmptyAdjacentBoxes(board, playerBoard, row, col) {
-    playerBoard[row][col] = "·";
+    playerBoard[row][col] = " "; // · to distinguish from non-touched cells
 
-    // Uncaught InternalError: too much recursion
-    /*
-    if (row-1 >= 0 && board[row-1][col] === 0) showEmptyAdjacentBoxes(board, playerBoard, row-1, col);
-    if (row+1 < board.length && board[row+1][col] === 0) showEmptyAdjacentBoxes(board, playerBoard, row+1, col);
-    if (col-1 >= 0 && board[row][col-1] === 0) showEmptyAdjacentBoxes(board, playerBoard, row, col-1);
-    if (col+1 < board[row].length && board[row][col+1] === 0) showEmptyAdjacentBoxes(board, playerBoard, row, col+1);
-    */
+    for (i = row-1; i <= row+1; i++) {
+        if (i < 0 || i >= board.length) continue; // Skip to next iteration if we are in a row border
 
-    // This works but is incomplete
-    /*
-    if (row+1 < board.length && board[row+1][col] === 0) showEmptyAdjacentBoxes(board, playerBoard, row+1, col);
-    if (col+1 < board[row].length && board[row][col+1] === 0) showEmptyAdjacentBoxes(board, playerBoard, row, col+1);
-    */
+        for (j = col-1; j <= col+1; j++) {
+            // Skip
+            if (j < 0 || j >= board[i].length) continue; // ... if we are in a column border
+            else if (i === row && j === col) continue; // ... if we are in this very same cell
+            else if (board[i][j] === -1) continue; // ... if it's a mine
+            else if (playerBoard[i][j] !== "x") continue; // ... if it's already revealed
 
-    // This works but is incomplete
-    /*
-    if (row-1 >= 0 && board[row-1][col] === 0) showEmptyAdjacentBoxes(board, playerBoard, row-1, col);
-    if (col-1 >= 0 && board[row][col-1] === 0) showEmptyAdjacentBoxes(board, playerBoard, row, col-1);
-    */
+            // Go on
+            else if (board[i][j] === 0) showEmptyAdjacentBoxes(board, playerBoard, i, j); // Recursion
+            else playerBoard[i][j] = board[i][j]; // Show numeric flag and stop iteration
+        }
+    }
 }
 
 function play(board, playerBoard) {
@@ -176,22 +168,18 @@ function play(board, playerBoard) {
         col = parseInt(prompt(`RONDA ${round} - Elige columna (0-${boardSize-1}):`));
         // WIP: Añadir verificación
 
-        if (board[row][col] === -1) {
-            playerBoard[row][col] = "*";
+        if (board[row][col] == -1) {
             console.error(`¡BUM! Se acabó el juego.`);
+            playerBoard[row][col] = "*";
             playing = false;
-        } else if (playerBoard[row][col] !== " ") {
+        } else if (playerBoard[row][col] === " ") {
             console.log(`Ya se ha destapado esa casilla.`);
-        } else if (board[row][col] === 0) {
-            // Box by box:
-            // playerBoard[row][col] = "·";
-            // Recursive (WIP):
-            showEmptyAdjacentBoxes(board, playerBoard, row, col);
-            
+        } else if (board[row][col] == 0) {
             console.log(`Ninguna mina a la vista.`);
+            showEmptyAdjacentBoxes(board, playerBoard, row, col);
         } else {
-            playerBoard[row][col] = board[row][col];
             console.warn(`Una mina anda cerca...`);
+            playerBoard[row][col] = board[row][col];
         }
 
         console.table(playerBoard);
