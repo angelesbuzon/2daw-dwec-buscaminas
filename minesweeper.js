@@ -134,7 +134,7 @@ function getRandomCoordinate(min, max) {
 }
 
 function updateAdjacentBoxes(logicBoard, r, c) {
-    // Used when placing mines
+    // Used in placeMines()
     if (logicBoard[r][c] !== -1) {
         logicBoard[r][c]++;
         console.debug(`Adjacent [${r}][${c}] updated`)
@@ -151,14 +151,36 @@ function showEmptyAdjacentBoxes(logicBoard, playerBoard, row, col) {
             // Using == sometimes to account for num/string
 
             // Skip
+            /*
             if (j < 0 || j >= logicBoard[i].length) continue; // ... if we are in a column border
             else if (i === row && j === col) continue; // ... if we are in this very same cell
             else if (logicBoard[i][j] == -1) continue; // ... if it's a mine
             else if (playerBoard[i][j] !== "x") continue; // ... if it's already revealed
+            */
+
+            // Skip (debug)
+            if (j < 0 || j >= logicBoard[i].length) continue; // ... if we are in a column border
+            else if (i === row && j === col) {
+                console.table(playerBoard);
+                continue;
+             } // ... if we are in this very same cell
+            else if (logicBoard[i][j] == -1) {
+                console.table(playerBoard);
+                continue;
+            } // ... if it's a mine
+            else if (playerBoard[i][j] !== "x") {
+                console.table(playerBoard);
+                continue;
+             } // ... if it's already revealed
 
             // Go on
             else if (logicBoard[i][j] == 0) showEmptyAdjacentBoxes(logicBoard, playerBoard, i, j); // Recursion
-            else playerBoard[i][j] = logicBoard[i][j]; // Show numeric flag and stop iteration
+            //else playerBoard[i][j] = logicBoard[i][j]; // Show numeric flag and stop iteration
+            else {
+                playerBoard[i][j] = logicBoard[i][j];
+                console.table(playerBoard);
+            }
+            
         }
     }
 }
