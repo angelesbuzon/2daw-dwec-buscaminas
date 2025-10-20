@@ -13,7 +13,7 @@
  * 1...8   =   adjacent
  * 
  * console.log's for playing are in the target language
- * console.debug's are in English
+ * console.debug's are in English (viewed with Debugger enabled in browser)
  */
 
 let logicBoard = [[]];
@@ -32,7 +32,7 @@ do {
     boardSize = parseInt(prompt(`- BUSCAMINAS -\nIntroduce un número para determinar los dos lados del tablero (p. ej., 5 para un 5x5):`));
     
     if (isNaN(boardSize)) alert(`ERROR: Introduce un número en dígitos.`);
-    else if (boardSize < 3) alert(`ERROR: Debe ser como mínimo de 3x3.`);
+    else if (boardSize < 4) alert(`ERROR: Debe ser como mínimo de 4x4.`);
     else inputIsValid = true;
 } while (!inputIsValid);
 
@@ -51,7 +51,8 @@ placeMines(logicBoard, boardSize, numberOfMines);
 playerBoard = generateBoard(boardSize, "x");
 console.debug(`Player board generated`);
 
-console.table(logicBoard); //debug
+// Show logicBoard for debugging
+console.table(logicBoard);
 
 /* -------
     Go!
@@ -60,7 +61,7 @@ play(logicBoard, playerBoard);
 
 /* ------------------------------------------------------------------------------------------------------------------------------
     Functions
-   ----------- */
+   ------------------------------------------------------------------------------------------------------------------------------ */
 function generateBoard(size, emptyChar) {
     let brd = [];
 
@@ -148,38 +149,17 @@ function showEmptyAdjacentBoxes(logicBoard, playerBoard, row, col) {
         if (i < 0 || i >= logicBoard.length) continue; // Skip to next iteration if we are in a row border
 
         for (j = col-1; j <= col+1; j++) {
-            // Using == sometimes to account for num/string
+            // Using == instead of === sometimes to account for num/string
 
-            // Skip
-            /*
+            // Skip...
             if (j < 0 || j >= logicBoard[i].length) continue; // ... if we are in a column border
             else if (i === row && j === col) continue; // ... if we are in this very same cell
             else if (logicBoard[i][j] == -1) continue; // ... if it's a mine
             else if (playerBoard[i][j] !== "x") continue; // ... if it's already revealed
-            */
 
-            // Skip (debug)
-            if (j < 0 || j >= logicBoard[i].length) continue; // ... if we are in a column border
-            else if (i === row && j === col) {
-                console.table(playerBoard);
-                continue;
-             } // ... if we are in this very same cell
-            else if (logicBoard[i][j] == -1) {
-                console.table(playerBoard);
-                continue;
-            } // ... if it's a mine
-            else if (playerBoard[i][j] !== "x") {
-                console.table(playerBoard);
-                continue;
-             } // ... if it's already revealed
-
-            // Go on
+            // Go on:
             else if (logicBoard[i][j] == 0) showEmptyAdjacentBoxes(logicBoard, playerBoard, i, j); // Recursion
-            //else playerBoard[i][j] = logicBoard[i][j]; // Show numeric flag and stop iteration
-            else {
-                playerBoard[i][j] = logicBoard[i][j];
-                console.table(playerBoard);
-            }
+            else playerBoard[i][j] = logicBoard[i][j]; // Show numeric flag and stop iteration
             
         }
     }
@@ -224,8 +204,11 @@ function play(logicBoard, playerBoard) {
         } else if (playerBoard[row][col] === " ") {
             console.log(`Ya se ha destapado esa casilla.`);
         } else if (logicBoard[row][col] == 0) {
-            console.log(`Ninguna mina a la vista.`);
-            showEmptyAdjacentBoxes(logicBoard, playerBoard, row, col);
+            // Reveal box by box
+            playerBoard[row][col] = " "; 
+
+            // Reveal all empty adjacent boxes (unfinished...)
+            // showEmptyAdjacentBoxes(logicBoard, playerBoard, row, col);
         } else {
             console.warn(`Una mina anda cerca...`);
             playerBoard[row][col] = logicBoard[row][col];
