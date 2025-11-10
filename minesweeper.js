@@ -112,6 +112,7 @@ function placeMines(logicBoard, boardSize, numberOfMines) {
          * · · ·
          * · * ·
          * · · ·
+         * Teacher's recommendation on 2025/11/10: Do this part in a separate function executed at the same hierarchical for better memory efficiency
          */
 
         console.debug(`Updating adjacents of mine [${row}][${col}]`);
